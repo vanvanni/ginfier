@@ -9,11 +9,7 @@ type (
 	}
 
 	APIResponse struct {
-		Success bool   `json:"success"`
+		Code    string `json:"code"`
 		Message string `json:"message"`
-	}
-
-	ValidationError struct {
-		MissingFields []string `json:"missing_fields"`
 	}
 )

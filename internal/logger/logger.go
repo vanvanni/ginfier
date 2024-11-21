@@ -71,4 +71,5 @@ func Error(message string) {
 
 func Fatal(message string) {
 	write(FATAL, message)
+	os.Exit(1)
 }
