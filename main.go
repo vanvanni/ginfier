@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"text/template"
 
 	"embed"
@@ -27,6 +29,18 @@ func validateAPIKey(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func getNginxConfigPath() string {
+	switch runtime.GOOS {
+	case "linux":
+		if _, err := os.Stat("/etc/nginx/conf.d"); err == nil {
+			return "/etc/nginx/conf.d"
+		}
+		return "/etc/nginx/sites-enabled"
+	default:
+		return "/etc/nginx/conf.d"
+	}
+}
+
 func createProxyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -36,6 +50,21 @@ func createProxyHandler(w http.ResponseWriter, r *http.Request) {
 	var config config.ProxyConfig
 	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	var missingFields []string
+	if config.Domain == "" {
+		missingFields = append(missingFields, "domain")
+	}
+	if config.Destination == "" {
+		missingFields = append(missingFields, "destination")
+	}
+
+	if len(missingFields) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(config.ValidationError{MissingFields: missingFields})
 		return
 	}
 
@@ -64,7 +93,7 @@ func createProxyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create config file path
-	configPath := "/etc/nginx/conf.d/" + config.Domain + ".conf"
+	configPath := fmt.Sprintf("%s/%s.conf", getNginxConfigPath(), config.Domain)
 	f, err := os.Create(configPath)
 	if err != nil {
 		log.Printf("Failed to create config file: %v", err)
@@ -83,10 +112,7 @@ func createProxyHandler(w http.ResponseWriter, r *http.Request) {
 	// Note: This requires sudo privileges or proper system configuration
 	// TODO: Implement NGINX reload
 
-	response := struct {
-		Success bool   `json:"success"`
-		Message string `json:"message"`
-	}{
+	response := config.APIResponse{
 		Success: true,
 		Message: "Proxy configuration created successfully",
 	}
