@@ -85,9 +85,7 @@ func createHandler(c *gin.Context) {
 		return
 	}
 
-	// Reload NGINX
-	// Note: This requires sudo privileges or proper system configuration
-	// TODO: Implement NGINX reload
+	nginx.Reload()
 
 	response := config.APIResponse{
 		Code:    "OK",
