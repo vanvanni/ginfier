@@ -9,12 +9,9 @@ A lightweight, straightforward API server for managing nginx virtual hosts, writ
 - 🚀 Simple & Quick: Deploy new virtual hosts in seconds
 - 🔄 REST API: Easy to integrate with your existing tools
 - 📁 Auto-Config: Generates nginx configuration files
-- 🔌 Minimal: Focus on essential features for quick deployment
-
-## Coming Soon
-- 🔐 SSL/TLS Management via **Let's Encrypt**
+- 🔐 SSL/TLS Management via **Certbot**
 - 🔄 Reload Configuration
-- 👥 Token based auth
+- 🔌 Minimal: Focus on essential features for quick deployment
 
 ## Installation
 
@@ -22,6 +19,10 @@ A lightweight, straightforward API server for managing nginx virtual hosts, writ
 
 ### Compiling from source
 ```bash
+# Ensure NGINX and Certbot is Installed
+sudo snap install --classic certbot -y
+sudp apt install nginx -y
+
 # Clone the repository
 git clone https://github.com/vanvanni/ginfier.git
 

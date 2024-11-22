@@ -47,16 +47,10 @@ func createHandler(c *gin.Context) {
 	}
 
 	if cfg.EnableSSL {
-		certManager, err := nginx.NewCertManager("/etc/letsencrypt/live")
+		err := nginx.RequestCertificate(cfg.Domain)
 		if err != nil {
 			log.Printf("Failed to create cert manager: %v", err)
 			c.JSON(500, gin.H{"code": "SERVER_ERROR", "error": "Failed to initialize SSL manager"})
-			return
-		}
-
-		if err := certManager.RequestCertificate(cfg.Domain); err != nil {
-			log.Printf("Failed to request SSL certificate: %v", err)
-			c.JSON(500, gin.H{"code": "SERVER_ERROR", "error": "Failed to request SSL certificate"})
 			return
 		}
 	}
@@ -98,7 +92,7 @@ func createHandler(c *gin.Context) {
 func main() {
 	logger.Info("Starting: GinFier")
 
-	required := []string{"API_SECRET"}
+	required := []string{"API_SECRET", "LETSENCRYPT_EMAIL"}
 	for _, env := range required {
 		if os.Getenv(env) == "" {
 			logger.Fatal("Missing: API_SECRET")

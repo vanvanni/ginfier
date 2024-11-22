@@ -9,6 +9,11 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/{{ .Domain }}/privkey.pem;
     {{end}}
 
+    location /.well-known/acme-challenge/ {
+        root /var/www/acme-challenges/{{ .Domain }};
+        try_files $uri =404;
+    }
+    
     location / {
         proxy_pass {{ .Destination }};
         proxy_set_header Host $host;
